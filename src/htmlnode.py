@@ -3,7 +3,7 @@ from __future__ import annotations
 class HTMLNode():
 
     def __init__(self, tag: str | None = None, value: str | None = None, 
-                 children: HTMLNode | None = None, props: dict | None = None):
+                 children: list[HTMLNode] | None = None, props: dict | None = None):
         self.tag = tag
         self.value = value
         self.children = children
@@ -20,7 +20,7 @@ class HTMLNode():
         return ret.rstrip()
     
     def __repr__(self):
-        return f"HTMLNode - Tag:{self.tag}, Value:{self.value}, Children:{self.children}, Props:{self.props}"
+        return f"{self.__class__.__name__} - Tag:{self.tag}, Value:{self.value}, Children:{self.children}, Props:{self.props}"
     
     def __eq__(self, other):
         if not isinstance(other, HTMLNode):
