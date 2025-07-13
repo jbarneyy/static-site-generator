@@ -2,6 +2,7 @@ from textnode import TextNode, TextType
 from htmlnode import HTMLNode
 from leafnode import LeafNode
 from parentnode import ParentNode
+import re
 
 def main():
     dummy_node = TextNode("This is anchor text", TextType.LINK, "https://www.boot.dev")
@@ -49,7 +50,7 @@ def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: 
 
         split_string_list = node.text.split(delimiter)
         if len(split_string_list) % 2 == 0:
-            raise Exception(f"Delimiter mismatch in {node}")
+            raise Exception(f"Delimiter mismatch in TextNode")
         
         for i in range(len(split_string_list)):
             string = split_string_list[i]
@@ -64,7 +65,19 @@ def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: 
     
     return return_nodes
 
-        
+
+def extract_markdown_images(text: str):
+    string_matches = re.findall(r"!\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+
+    return string_matches
+
+def extract_markdown_links(text: str):
+    string_matches = re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
+
+    return string_matches
+
+
+
 
 
 
