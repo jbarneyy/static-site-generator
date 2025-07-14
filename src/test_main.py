@@ -197,3 +197,71 @@ class Test(unittest.TestCase):
             TextNode("two", TextType.IMAGE, "b.png"),
             TextNode("bootdev", TextType.LINK, "https://boot.dev")
         ], text_to_textnodes(text))
+
+
+    def test_markdown_to_blocks(self):
+        md = """
+This is **bolded** paragraph
+
+This is another paragraph with _italic_ text and `code` here
+This is the same paragraph on a new line
+
+- This is a list
+- with items
+"""
+        
+        blocks = markdown_to_blocks(md)
+
+        self.assertEqual(
+            blocks,
+            [
+                "This is **bolded** paragraph",
+                "This is another paragraph with _italic_ text and `code` here\nThis is the same paragraph on a new line",
+                "- This is a list\n- with items",
+            ],
+        )
+
+    def test_blocktype_heading(self):
+        md = "## Heading two"
+        self.assertEqual(block_to_block_type(md), BlockType.HEADING)
+
+        md = "#No space after hash"
+        self.assertEqual(block_to_block_type(md), BlockType.PARAGRAPH)
+
+    def test_blocktype_code(self):
+        md = "```\ncode\n```"
+        self.assertEqual(block_to_block_type(md), BlockType.CODE)
+
+        md = "```\ncode"
+        self.assertEqual(block_to_block_type(md), BlockType.PARAGRAPH)
+
+    def test_blocktype_quote(self):
+        md = "> a quote\n> another line"
+        self.assertEqual(block_to_block_type(md), BlockType.QUOTE)
+
+        md = ">partial\nnot quoted"
+        self.assertEqual(block_to_block_type(md), BlockType.PARAGRAPH)
+
+    def test_blocktype_unordered(self):
+        md = "- item one\n- item two"
+        self.assertEqual(block_to_block_type(md), BlockType.UNORDERED_LIST)
+
+        md = "item one\n* item two"
+        self.assertEqual(block_to_block_type(md), BlockType.PARAGRAPH)
+
+    def test_blocktype_ordered(self):
+        md = "1. one\n2. two\n3. three"
+        self.assertEqual(block_to_block_type(md), BlockType.ORDERED_LIST)
+
+        md = "1. one\n3. three"
+        self.assertEqual(block_to_block_type(md), BlockType.PARAGRAPH)
+
+        md = "0. zero\n1. one"
+        self.assertEqual(block_to_block_type(md), BlockType.PARAGRAPH)
+
+    def test_blocktype_paragraph(self):
+        md = "Just plain text."
+        self.assertEqual(block_to_block_type(md), BlockType.PARAGRAPH)
+
+        md = "Some text\n- but followed by a dash"
+        self.assertEqual(block_to_block_type(md), BlockType.PARAGRAPH)

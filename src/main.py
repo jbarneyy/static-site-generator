@@ -2,7 +2,20 @@ from textnode import TextNode, TextType
 from htmlnode import HTMLNode
 from leafnode import LeafNode
 from parentnode import ParentNode
+
+from enum import Enum
 import re
+
+
+class BlockType(Enum):
+    PARAGRAPH = "paragraph"
+    HEADING = "heading"
+    CODE = "code"
+    QUOTE = "quote"
+    UNORDERED_LIST = "unordered_list"
+    ORDERED_LIST = "ordered_list"
+
+
 
 def main():
     dummy_node = TextNode("This is anchor text", TextType.LINK, "https://www.boot.dev")
@@ -60,7 +73,7 @@ def split_nodes_delimiter(old_nodes: list[TextNode], delimiter: str, text_type: 
                     new_nodes.append(TextNode(string, TextType.TEXT))
                 else:
                     new_nodes.append(TextNode(string, text_type))
-                    
+
             # Catches empty delimiter nodes that are not TextType.TEXT #
             else:
                 if i % 2 != 0:
@@ -173,6 +186,36 @@ def extract_markdown_links(text: str):
     string_matches = re.findall(r"(?<!!)\[([^\[\]]*)\]\(([^\(\)]*)\)", text)
 
     return string_matches
+
+
+def markdown_to_blocks(markdown: str):
+    block_list = markdown.split("\n\n")
+    return [block.strip() for block in block_list if block]
+
+
+def block_to_block_type(markdown_block: str):
+
+    block_lines = markdown_block.split("\n")
+
+    matched = re.match(r"#{1,6} ", block_lines[0])
+
+    if matched:
+        return BlockType.HEADING
+    
+    if markdown_block.startswith("```") and markdown_block.endswith("```"):
+        return BlockType.CODE
+
+    if all(line.startswith(">") for line in block_lines):
+        return BlockType.QUOTE
+    
+    if all(line.startswith("- ") for line in block_lines):
+        return BlockType.UNORDERED_LIST
+    
+    if all(line.startswith(f"{index}. ") for index, line in enumerate(block_lines, start=1)):
+        return BlockType.ORDERED_LIST
+
+    return BlockType.PARAGRAPH
+
 
 
 
