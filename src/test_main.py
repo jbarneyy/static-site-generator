@@ -1,6 +1,6 @@
 import unittest
 
-from main import text_node_to_html_node, split_nodes_delimiter, extract_markdown_images, extract_markdown_links, split_nodes_image, split_nodes_link
+from main import *
 from textnode import TextNode, TextType
 from htmlnode import HTMLNode
 from leafnode import LeafNode
@@ -137,3 +137,63 @@ class Test(unittest.TestCase):
         new_nodes
         )
 
+
+    def test_text_to_textnodes(self):
+        text = "This is **text** with an _italic_ word and a `code block` and " \
+        "an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
+        self.assertListEqual([
+            TextNode("This is ", TextType.TEXT),
+            TextNode("text", TextType.BOLD),
+            TextNode(" with an ", TextType.TEXT),
+            TextNode("italic", TextType.ITALIC),
+            TextNode(" word and a ", TextType.TEXT),
+            TextNode("code block", TextType.CODE),
+            TextNode(" and an ", TextType.TEXT),
+            TextNode("obi wan image", TextType.IMAGE, "https://i.imgur.com/fJRm4Vk.jpeg"),
+            TextNode(" and a ", TextType.TEXT),
+            TextNode("link", TextType.LINK, "https://boot.dev"),
+        ], text_to_textnodes(text))
+
+        text = "This is **bold**_italic_`code`"
+        self.assertListEqual([
+            TextNode("This is ", TextType.TEXT),
+            TextNode("bold", TextType.BOLD),
+            TextNode("italic", TextType.ITALIC),
+            TextNode("code", TextType.CODE)
+        ], text_to_textnodes(text))
+
+        text = "Just plain text with nothing special."
+        self.assertListEqual([
+            TextNode("Just plain text with nothing special.", TextType.TEXT)
+        ], text_to_textnodes(text))
+
+        text = "**BoldStart** middle _italicEnd_"
+        self.assertListEqual([
+            TextNode("BoldStart", TextType.BOLD),
+            TextNode(" middle ", TextType.TEXT),
+            TextNode("italicEnd", TextType.ITALIC)
+        ], text_to_textnodes(text))
+
+        text = "Start ![img1](a.jpg) middle [site](http://x) end"
+        self.assertListEqual([
+            TextNode("Start ", TextType.TEXT),
+            TextNode("img1", TextType.IMAGE, "a.jpg"),
+            TextNode(" middle ", TextType.TEXT),
+            TextNode("site", TextType.LINK, "http://x"),
+            TextNode(" end", TextType.TEXT)
+        ], text_to_textnodes(text))
+
+        text = "here's an empty bold: **** and empty link: []()"
+        self.assertListEqual([
+            TextNode("here's an empty bold: ", TextType.TEXT),
+            TextNode("", TextType.BOLD),
+            TextNode(" and empty link: ", TextType.TEXT),
+            TextNode("", TextType.LINK, "")
+        ], text_to_textnodes(text))
+
+        text = "![one](a.jpg)![two](b.png)[bootdev](https://boot.dev)"
+        self.assertListEqual([
+            TextNode("one", TextType.IMAGE, "a.jpg"),
+            TextNode("two", TextType.IMAGE, "b.png"),
+            TextNode("bootdev", TextType.LINK, "https://boot.dev")
+        ], text_to_textnodes(text))
