@@ -1,10 +1,13 @@
 import unittest
 
-from main import *
 from textnode import TextNode, TextType
 from htmlnode import HTMLNode
 from leafnode import LeafNode
 from parentnode import ParentNode
+
+from textfuncs import *
+from blockfuncs import *
+
 
 
 class Test(unittest.TestCase):
@@ -88,9 +91,6 @@ class Test(unittest.TestCase):
                               ("rick roll", "https://i.imgur.com/aKaOqIh.gif")], matches)
         
         no_matches = extract_markdown_images("This is text with no images, wonder what it will return.")
-
-        # print(no_matches)
-        # print(matches)
         
     def test_extract_markdown_links(self):
         matches = extract_markdown_links("This is text with a link [to boot dev](https://www.boot.dev) and [to youtube](https://www.youtube.com)")
@@ -101,6 +101,7 @@ class Test(unittest.TestCase):
         no_matches = extract_markdown_links("This is text with no links, wonder what it will return.")
 
 
+    # Tests for split_nodes_image() and split_nodes_link() #
     def test_split_images(self):
         node = TextNode(
             "This is text with an ![image](https://i.imgur.com/zjjcJKZ.png) and another ![second image](https://i.imgur.com/3elNhQu.png)",
@@ -118,7 +119,6 @@ class Test(unittest.TestCase):
             ],
             new_nodes,
         )
-        # print(new_nodes)
 
     def test_split_links(self):
         node = TextNode(
@@ -138,6 +138,7 @@ class Test(unittest.TestCase):
         )
 
 
+    # Tests for text_to_textnodes() - combines split_nodes_delimiter(), split_nodes_image(), and split_nodes_link() #
     def test_text_to_textnodes(self):
         text = "This is **text** with an _italic_ word and a `code block` and " \
         "an ![obi wan image](https://i.imgur.com/fJRm4Vk.jpeg) and a [link](https://boot.dev)"
@@ -199,6 +200,7 @@ class Test(unittest.TestCase):
         ], text_to_textnodes(text))
 
 
+    # Tests for markdown_to_blocks() - converts markdown doc into separate blocks of markdown #
     def test_markdown_to_blocks(self):
         md = """
 This is **bolded** paragraph
@@ -221,6 +223,8 @@ This is the same paragraph on a new line
             ],
         )
 
+
+    # Tests for block_to_block_type() - returns block type based on markdown block #
     def test_blocktype_heading(self):
         md = "## Heading two"
         self.assertEqual(block_to_block_type(md), BlockType.HEADING)
@@ -267,7 +271,7 @@ This is the same paragraph on a new line
         self.assertEqual(block_to_block_type(md), BlockType.PARAGRAPH)
 
 
-
+    # Tests for markdown_to_html_node() - converts full markdown into list of HTMLNodes (ParentNodes with Leaf/Parent children) #
     def test_paragraphs(self):
         md = """
 This is **bolded** paragraph
@@ -329,3 +333,43 @@ the **same** even with inline stuff
         node = markdown_to_html_node(md)
         html = node.to_html()
         self.assertEqual(html, "<div><p>Just a simple paragraph.</p></div>")
+
+    def test_all_markdown(self):
+        md = """
+# Main Heading
+
+Some _introductory_ text with **bold** and `inline code`.
+
+> A blockquote with a **bold** word.
+
+1. First item
+2. Second item
+
+- Unordered
+- List
+- Items
+
+```
+def foo():
+    return "bar"
+```
+
+Another paragraph with
+a newline in it.
+"""
+        expected_html = (
+            "<div>"
+            "<h1>Main Heading</h1>"
+            "<p>Some <i>introductory</i> text with <b>bold</b> and <code>inline code</code>.</p>"
+            "<blockquote>A blockquote with a <b>bold</b> word.</blockquote>"
+            "<ol><li>First item</li><li>Second item</li></ol>"
+            "<ul><li>Unordered</li><li>List</li><li>Items</li></ul>"
+            "<pre><code>def foo():\n    return \"bar\"\n</code></pre>"
+            "<p>Another paragraph with a newline in it.</p>"
+            "</div>"
+        )
+
+        node = markdown_to_html_node(md)
+        html = node.to_html()
+        
+        self.assertEqual(html, expected_html)
