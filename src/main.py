@@ -6,13 +6,15 @@ from parentnode import ParentNode
 from blockfuncs import markdown_to_html_node, extract_title
 
 import os
+import sys
 import shutil
 
 
 def main():
-    copy_src_to_dst("static", "public")
-    generate_pages_recursive("content", "template.html", "public")
-
+    basepath = sys.argv[1] if len(sys.argv) > 1 else "/"
+    
+    copy_src_to_dst("static", "docs")
+    generate_pages_recursive("content", "template.html", "docs", basepath)
 
 
 def copy_src_to_dst(src: str, dst: str):
@@ -48,7 +50,7 @@ def src_to_dst_helper(src: str, dst: str):
             src_to_dst_helper(item_src_path, item_dst_path)
 
 
-def generate_page(from_path: str, template_path: str, dest_path: str):
+def generate_page(from_path: str, template_path: str, dest_path: str, basepath: str):
 
     abs_from_path = os.path.abspath(from_path)
     abs_template_path = os.path.abspath(template_path)
@@ -83,6 +85,9 @@ def generate_page(from_path: str, template_path: str, dest_path: str):
     template_file_replaced = template_file.replace("{{ Title }}", page_title)
     template_file_replaced = template_file_replaced.replace("{{ Content }}", html_string)
 
+    template_file_replaced = template_file_replaced.replace('href="/', f'href="{clean_basepath(basepath)}')
+    template_file_replaced = template_file_replaced.replace('src="/', f'src="{clean_basepath(basepath)}')
+
     print(template_file_replaced)
 
     # Write new full HTML page to a file at dest_path #
@@ -91,7 +96,7 @@ def generate_page(from_path: str, template_path: str, dest_path: str):
 
 
 # Crawl every entry in content/, for each md file, generate HTML file using template.html, write to public/ in same dir structure #
-def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str):
+def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str, basepath: str):
 
     abs_source_path = os.path.abspath(dir_path_content)
     abs_template_path = os.path.abspath(template_path)
@@ -109,14 +114,21 @@ def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir
         # md file found, convert md to HTML string using markdown_to_html().to_html(), grab title, replace template.html sections #
         # Write to public/ keeping same dir structure found in content/ while replacing .md with .html #
         if os.path.isfile(item_src_path) and os.path.basename(item_src_path) == "index.md":
-            generate_page(item_src_path, abs_template_path, item_dst_path.replace("index.md", "index.html"))
+            generate_page(item_src_path, abs_template_path, item_dst_path.replace("index.md", "index.html"), basepath)
 
         # Dir found, call generate_pages_recursive() on sub directory to find more index.md files #
         else:
-            generate_pages_recursive(item_src_path, abs_template_path, item_dst_path)
+            generate_pages_recursive(item_src_path, abs_template_path, item_dst_path, basepath)
 
 
+def clean_basepath(basepath: str):
+    if not basepath.startswith("/"):
+        basepath = "/" + basepath
 
+    if not basepath.endswith("/"):
+        basepath += "/"
+
+    return basepath
 
 
 main()
