@@ -11,7 +11,7 @@ import shutil
 
 def main():
     copy_src_to_dst("static", "public")
-    generate_page("content/index.md", "template.html", "public/index.html")
+    generate_pages_recursive("content", "template.html", "public")
 
 
 
@@ -93,16 +93,27 @@ def generate_page(from_path: str, template_path: str, dest_path: str):
 # Crawl every entry in content/, for each md file, generate HTML file using template.html, write to public/ in same dir structure #
 def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str):
 
+    abs_source_path = os.path.abspath(dir_path_content)
+    abs_template_path = os.path.abspath(template_path)
+
+    os.makedirs(os.path.dirname(os.path.abspath(dest_dir_path)), exist_ok=True)
+    abs_dir_path = os.path.abspath(dest_dir_path)
+
     # Crawl every entry in content/ #
+    dir_items = os.listdir(abs_source_path)
 
+    for item in dir_items:
+        item_src_path = os.path.join(abs_source_path, item)
+        item_dst_path = os.path.join(abs_dir_path, item)
 
-    # md file found, convert md to HTML string using markdown_to_html().to_html(), grab title, replace template.html sections #
-    # Write to public/ keeping same dir structure found in content/ #
+        # md file found, convert md to HTML string using markdown_to_html().to_html(), grab title, replace template.html sections #
+        # Write to public/ keeping same dir structure found in content/ while replacing .md with .html #
+        if os.path.isfile(item_src_path) and os.path.basename(item_src_path) == "index.md":
+            generate_page(item_src_path, abs_template_path, item_dst_path.replace("index.md", "index.html"))
 
-
-
-
-    pass
+        # Dir found, call generate_pages_recursive() on sub directory to find more index.md files #
+        else:
+            generate_pages_recursive(item_src_path, abs_template_path, item_dst_path)
 
 
 
