@@ -90,6 +90,19 @@ def generate_page(from_path: str, template_path: str, dest_path: str):
         f.write(template_file_replaced)
 
 
+# Crawl every entry in content/, for each md file, generate HTML file using template.html, write to public/ in same dir structure #
+def generate_pages_recursive(dir_path_content: str, template_path: str, dest_dir_path: str):
+
+    # Crawl every entry in content/ #
+
+
+    # md file found, convert md to HTML string using markdown_to_html().to_html(), grab title, replace template.html sections #
+    # Write to public/ keeping same dir structure found in content/ #
+
+
+
+
+    pass
 
 
 
