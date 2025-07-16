@@ -373,3 +373,9 @@ a newline in it.
         html = node.to_html()
         
         self.assertEqual(html, expected_html)
+
+
+    # Test for extract_title(), determine if h1 header is provided #
+    def test_extract_title(self):
+
+        self.assertEqual(extract_title("# Header"), "Header")

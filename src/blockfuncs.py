@@ -15,6 +15,18 @@ class BlockType(Enum):
     ORDERED_LIST = "ordered_list"
 
 
+def extract_title(markdown: str):
+    block_list = markdown_to_blocks(markdown)
+    header_block = block_list[0]
+    
+    matched = re.match(r"#{1} ", header_block)
+
+    if not matched:
+        raise Exception("No h1 header")
+    else:
+        return header_block.strip("# ")
+
+
 def markdown_to_blocks(markdown: str):
     block_list = markdown.split("\n\n")
     return [block.strip() for block in block_list if block]
